@@ -2341,8 +2341,11 @@ class VolumetricData(object):
                 elif line == dimline:
                     read_dataset = True
                     dataset = np.zeros(dim)
+            
             if len(all_dataset) == 2:
                 data = {"total": all_dataset[0], "diff": all_dataset[1]}
+            elif len(all_dataset) == 4:
+                data = {"total": all_dataset[0], "x": all_dataset[1], "y": all_dataset[2], "z": all_dataset[3]}
             else:
                 data = {"total": all_dataset[0]}
             return poscar, data
