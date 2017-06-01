@@ -1398,6 +1398,7 @@ class Outcar(MSONable):
         read_charge = False
         read_mag = False
         all_lines.reverse()
+        mag_key = "x"
         for clean in all_lines:
             if read_charge or read_mag:
                 if clean.startswith("# of ion"):
@@ -1412,7 +1413,12 @@ class Outcar(MSONable):
                         if read_charge:
                             charge.append(dict(zip(header, toks)))
                         else:
-                            mag.append(dict(zip(header, toks)))
+                            if mag_key == "x":
+                                mag.append(dict(zip(header, toks)))
+                            elif mag_key == "y":
+                                magy.append(dict(zip(header, toks)))
+                            elif mag_key == "z":
+                                magz.append(dict(zip(header, toks)))
                     elif clean.startswith('tot'):
                         read_charge = False
                         read_mag = False
@@ -1424,6 +1430,21 @@ class Outcar(MSONable):
                 mag = []
                 read_mag = True
                 read_charge = False
+                mag_key = "x"
+            elif clean == "magnetization (y)":
+                magy = []
+                read_mag = True
+                read_charge = False
+                mag_key = "y"
+            elif clean == "magnetization (z)":
+                magz = []
+                read_mag = True
+                read_charge = False
+                mag_key = "z"
+
+
+
+
 
         # data from beginning of OUTCAR
         run_stats['cores'] = 0
@@ -1434,7 +1455,10 @@ class Outcar(MSONable):
                     break
 
         self.run_stats = run_stats
-        self.magnetization = tuple(mag)
+        if mag_key == "x":
+            self.magnetization = tuple(mag)
+        else:
+            self.magnetization = (mag, magy, magz)
         self.charge = tuple(charge)
         self.efermi = efermi
         self.nelect = nelect
@@ -1452,7 +1476,7 @@ class Outcar(MSONable):
         self.noncollinear = False
         self.read_pattern({'noncollinear': 'LNONCOLLINEAR =      T'})
         if self.data.get('noncollinear',[]):
-            self.noncollinear = False
+            self.noncollinear = True
 
         # Check to see if LEPSILON is true and read piezo data if so
         self.lepsilon = False
